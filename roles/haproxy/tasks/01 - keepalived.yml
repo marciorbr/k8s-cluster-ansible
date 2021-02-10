@@ -1,0 +1,19 @@
+---
+- name: Instalando Keepalived
+  apt:
+    name: keepalived
+    state: present
+
+- name: Habilitando serviço Keepalived
+  service:
+    name: 'keepalived'
+    enabled: 'yes'
+
+- name: Configurando Keepalived
+  template:
+    src: 'keepalived.conf.j2'
+    dest: '/etc/keepalived/keepalived.conf'
+    mode: '0644'
+    owner: 'root'
+    group: 'root'
+  notify: Restart keepalived

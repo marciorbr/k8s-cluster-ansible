@@ -1,0 +1,19 @@
+---
+- name: Instalando HaProxy
+  apt:
+    name: haproxy
+    state: present
+
+- name: Habilitando serviço HAProxy
+  service:
+    name: 'haproxy'
+    enabled: 'yes'
+
+- name: Configurando HA Proxy
+  template:
+    src: 'haproxy.cfg.j2'
+    dest: '/etc/haproxy/haproxy.cfg'
+    mode: '0644'
+    owner: 'root'
+    group: 'root'
+  notify: Reload haproxy

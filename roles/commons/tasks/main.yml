@@ -1,0 +1,21 @@
+- name: Atualizando distro
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Upgrade distro
+  apt:
+    upgrade: dist
+    autoremove: true
+
+- name: Instalando pacotes default
+  apt:
+    name: "{{ packages }}"
+    update_cache: true
+    state: present
+
+- name: Removendo pacotes obsoletos e não utilizados
+  apt:
+    autoclean: yes
+    autoremove: yes
+    force_apt_get: yes

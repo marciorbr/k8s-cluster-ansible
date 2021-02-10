@@ -1,0 +1,1 @@
+master_join_command: "{{ certs_key.stdout_lines[2]}}"

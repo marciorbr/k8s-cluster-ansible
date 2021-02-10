@@ -1,0 +1,20 @@
+- hosts: all
+  become: true
+  gather_facts: no
+  roles:
+    - { role: commons }
+
+- hosts: k8s_haproxy
+  become: true
+  gather_facts: no
+  roles:
+    - { role: haproxy }
+
+- hosts: k8s_cluster
+  become: true
+  gather_facts: yes
+  #vars_files:
+  #  - ./vars/secret.yaml
+  roles:
+    - { role: docker }
+    - { role: kubernetes }

@@ -1,0 +1,24 @@
+global_defs {
+    router_id ovp_vrrp
+}
+
+vrrp_script chk_haproxy {
+    script "killall -0 haproxy"   # verify the pid existance
+    interval 2                    # check every 2 seconds
+    weight 2                      # add 2 points of prio if OK
+}
+
+vrrp_instance VI_01 {
+
+    interface {{ keepalived_interface }}        # interface para monitorar
+    virtual_router_id 50
+    priority {{ keepalived_hosts_priority }}    # 101 on master, 100 on backup
+    state {{keepalived_hosts_state}}
+
+    virtual_ipaddress {
+        {{ k8s_virtual_ip }} dev {{ keepalived_interface }}    # IP Virtual
+    }
+    track_script {
+        chk_haproxy
+    }
+}

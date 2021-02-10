@@ -1,0 +1,31 @@
+---
+- name: Checando se o node Worker já realizou Join ao Cluster.
+  stat:
+    path: /etc/kubernetes/kubelet.conf
+  register: k8s_cluster_check
+
+- name: Pre-pull das imagens kubeadm
+  command: kubeadm config images pull
+  notify: 
+    - certificate_key
+    - token
+    - list_token
+    - ca_hash
+  when: not k8s_cluster_check.stat.exists and inventory_hostname in groups['k8s_worker']
+
+- meta: flush_handlers
+
+- name: Realizando join dos nodes Worker
+  command: >
+    kubeadm join {{ k8s_virtual_ip }}:{{ k8s_api_server_port }} 
+    --token {{ k8s_token.stdout }} 
+    --discovery-token-ca-cert-hash sha256:{{ k8s_ca_hash.stdout }}
+  when: not k8s_cluster_check.stat.exists and inventory_hostname in groups['k8s_worker']
+
+- name: Adicionando Label worker aos nodes Workers
+  command: "kubectl label node {{ inventory_hostname }} {{ label }}"
+  when: "'k8s_worker' in group_names"
+  delegate_to: "{{groups['k8s_primary_master'][0]}}"
+  run_once: yes
+  vars:
+    label: node-role.kubernetes.io/worker=worker

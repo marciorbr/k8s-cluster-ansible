@@ -1,0 +1,22 @@
+---
+- name: Removendo outras versões docker
+  apt:
+    name: "{{  item  }}"
+    state: absent
+  loop: "{{  docker.apt_dep_remove  }}"
+    
+- name: Instalando dependências docker
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ docker.apt_dep_install }}"
+
+- name: Adicionando GPG apt Key Docker
+  apt_key:
+    url: "{{ docker.apt_key_url }}"
+    state: present
+
+- name: Adicionando repositorio docker
+  apt_repository:
+    repo: "{{ docker.apt_repository }}"
+    state: present

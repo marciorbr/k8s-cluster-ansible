@@ -1,0 +1,51 @@
+---
+- name: Checando se o Cluster K8S já está iniciado.
+  stat:
+    path: /etc/kubernetes/kubelet.conf
+  register: k8s_cluster_check
+
+#######################################################################################
+- name: Bloco que contém as tasks para iniciar o Cluster K8S
+  block:
+  - name: Pre-pull das imagens kubeadm
+    command: kubeadm config images pull
+
+  - name: Iniciando Cluster K8S no primeiro node master com kubeadm init.
+    command: >
+      kubeadm init
+      --control-plane-endpoint {{ k8s_virtual_ip }}:{{ k8s_api_server_port }}
+      --pod-network-cidr={{ k8s_pod_network.cidr }}
+      --apiserver-advertise-address={{ hostvars[inventory_hostname].ansible_host }}
+      --upload-certs
+    register: kubeadm_init_output
+  
+  - name: Criando diretório .kube
+    file:
+      path: ~/.kube
+      state: directory
+
+  - name: Criando link simbólico kubectl admin.conf para ~/.kube/conf.
+    file:
+      src: /etc/kubernetes/admin.conf
+      dest: ~/.kube/config
+      state: link
+
+  # Se selecionado rede flannel no inventory group_var all
+  - name: Configurando Rede Flannel.
+    command: "{{ item }}"
+    with_items:
+      - kubectl apply -f {{ k8s_flannel_manifest_file_rbac }}
+      - kubectl apply -f {{ k8s_flannel_manifest_file }}
+    register: flannel_result
+    changed_when: "'created' in flannel_result.stdout"
+    when: k8s_pod_network.cni == 'flannel'
+
+  # Se selecionado rede Calico no inventory group_var all
+  - name: Configurando Rede Calico.
+    command: "{{ item }}"
+    with_items:
+      - kubectl apply -f {{ k8s_calico_manifest_file }}
+    register: calico_result
+    changed_when: "'created' in calico_result.stdout"
+    when: k8s_pod_network.cni == 'calico'
+  when: not k8s_cluster_check.stat.exists and inventory_hostname in groups['k8s_primary_master']

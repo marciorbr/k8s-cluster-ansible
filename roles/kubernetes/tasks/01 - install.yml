@@ -1,0 +1,19 @@
+- name: Instalando Kubernetes {{ kubeadm_version }}
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - kubectl={{ kubectl_version }}-00
+    - kubelet={{ kubelet_version }}-00
+    - kubeadm={{ kubeadm_version }}-00
+
+- name: Bloqueando update automatico kubectl, kubeadm e kubelet
+  dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop:
+    - kubectl
+    - kubeadm
+    - kubelet
+  register: fix
+  notify: Restart Kubelet

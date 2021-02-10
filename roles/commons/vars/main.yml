@@ -1,0 +1,2 @@
+---
+packages: [vim,wget,curl,unzip,lsof,tree,git,gcc,ca-certificates,software-properties-common,apt-transport-https,build-essential]

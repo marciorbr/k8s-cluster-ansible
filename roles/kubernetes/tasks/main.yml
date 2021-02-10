@@ -1,0 +1,6 @@
+---
+- include: 00 - pre-install.yml
+- include: 01 - install.yml
+- include: 02 - init_k8s_cluster.yml
+- include: 03 - join_k8s_other_master.yml
+- include: 04 - join_k8s_worker.yml

@@ -1,0 +1,24 @@
+---
+# Configurações Global
+haproxy_stats_timeout: 60s
+haproxy_user: haproxy
+haproxy_group: haproxy
+haproxy_maxconn_global: 1000
+haproxy_ca_base: /etc/ssl
+haproxy_crt_base: /etc/ssl
+
+# Configurações Defaults
+haproxy_log: global
+haproxy_default_mode: http
+
+# Configurações stats
+haproxy_bind_ip: '*'
+haproxy_bind_port: 9009
+haproxy_stats_mode: http
+haproxy_stats_uri: /stats
+haproxy_stats_auth_user: Admin
+haproxy_stats_auth_password: Admin
+
+#########################################
+# Configurações Keepalived
+keepalived_interface: 'ens192'

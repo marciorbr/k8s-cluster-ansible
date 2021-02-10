@@ -1,0 +1,3 @@
+---
+- include: 00 - haproxy.yml
+- include: 01 - keepalived.yml

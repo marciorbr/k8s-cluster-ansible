@@ -1,0 +1,51 @@
+---
+- name: Instalando docker-ce e docker-ce-cli versão {{ docker_version }}
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - docker-ce-cli=5:{{ docker_version }}~3-0~{{ ansible_lsb.id.lower() }}-{{ ansible_lsb.codename.lower() }}
+    - docker-ce=5:{{ docker_version }}~3-0~{{ ansible_lsb.id.lower() }}-{{ ansible_lsb.codename.lower() }}
+    - containerd.io
+
+- name: Iniciando serviço Docker
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Configurando daemon Docker
+  template:
+    src: daemon.json.j2
+    dest: /etc/docker/daemon.json
+
+- name: Criando diretório systemd para serviço Docker
+  file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+
+- name: Forçando systemd ler as configurações
+  systemd:
+    daemon_reload: yes
+
+- name: Habilitando systemd Docker
+  systemd:
+    name: docker
+    enabled: yes
+  notify: Restart Docker
+
+- meta: flush_handlers
+
+- name: Bloqueando update automatico docker-ce e docker-ce-cli
+  dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop:
+    - docker-ce
+    - docker-ce-cli
+  register: fix
+
+- name: Adicionando usuário 'automation' ao grupo 'docker'
+  user:
+    name: automation
+    group: docker

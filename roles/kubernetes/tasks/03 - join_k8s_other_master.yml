@@ -1,0 +1,27 @@
+---
+- name: Checando se o node Master já realizou Join ao Cluster
+  stat:
+    path: /etc/kubernetes/kubelet.conf
+  register: k8s_cluster_check
+
+- name: Pre-pull das imagens kubeadm
+  command: kubeadm config images pull
+  notify: 
+    - certificate_key
+    - token
+    - list_token
+    - ca_hash
+  when: not k8s_cluster_check.stat.exists and inventory_hostname in groups['k8s_other_master']
+
+- meta: flush_handlers
+
+- name: Realizando Join de outros Masters
+  command: >
+    kubeadm join {{ k8s_virtual_ip }}:{{ k8s_api_server_port }} 
+    --token {{ k8s_token.stdout }} 
+    --discovery-token-ca-cert-hash sha256:{{ k8s_ca_hash.stdout }}
+    --apiserver-advertise-address={{ hostvars[inventory_hostname].ansible_host }}
+    --certificate-key={{ certs_key.stdout_lines[2] }}
+    --control-plane
+  register: k8s_join_master
+  when: not k8s_cluster_check.stat.exists and inventory_hostname in groups['k8s_other_master']
